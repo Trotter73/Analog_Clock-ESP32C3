@@ -1,6 +1,4 @@
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
-#include <ArduinoOTA.h>
 #include <WebServer.h>
 #include <EEPROM.h>
 #include <LittleFS.h>
@@ -215,8 +213,6 @@ void setup() {
   String ipAddress = inApFallback ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
   Serial.println(ipAddress);
 
-  check_for_updates();
-
   tft.getTextBounds(ipAddress, 0, 100, &xPos, &yPos, &width, &height);
   tft.setTextColor(GC9A01A_WHITE);
   tft.setCursor(clock_center_x - width / 2, clock_center_y + 50);
@@ -231,8 +227,6 @@ void setup() {
   // callback, when NTP changes the time
   sntp_set_time_sync_notification_cb(timeUpdated);
   sntp_set_sync_interval(600 * 1000);  // update every 10 minutes
-
-  setupOTA();
 
   // Setup the web server
   server.on("/", handleRoot);
@@ -281,16 +275,7 @@ void loop() {
     WiFi.begin();
   }
 
-  ArduinoOTA.handle();
   server.handleClient();
 
   updateClock();
-
-  static time_t last_check_time = -1;
-  time_t now = time(nullptr);
-  if (now != last_check_time && now % (3600 * 24) == 0) {
-    // run once a day
-    last_check_time = now;
-    check_for_updates();
-  }
 }

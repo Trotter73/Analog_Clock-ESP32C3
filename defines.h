@@ -1,6 +1,3 @@
-#define CURRENT_FIRMWARE_VERSION 10
-
-#define PASSWORD "RoundClockPassword"
 #define HOSTNAME "RondKlokje"
 
 #define SSID_ADDR 0 // String[60]
@@ -30,9 +27,6 @@
 #define SCREEN_DIAMETER 240
 
 #define SECOND_SPLIT 5
-
-#define BUFFER_SIZE 150
-#define ERROR_VALUE -1
 
 const int clock_center_x = SCREEN_DIAMETER / 2;
 const int clock_center_y = SCREEN_DIAMETER / 2;
