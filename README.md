@@ -59,5 +59,5 @@ Use the files from here https://github.com/MatixYo/ESP32-Plane-Radar
   write_flash 0x230000 data.img
 
 ## ToDo
-Remove the OTA update code.
+?????????
 ```
