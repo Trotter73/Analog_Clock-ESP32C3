@@ -45,7 +45,7 @@ echo "Creating data image for in SPIFFS partition..."
 
 if [ "$NO_WRITE" = false ]; then
   echo "Write data image to SPIFFS partition..."
-  python /tmp/arduino_clock_cli/packages/esp32/tools/esptool_py/4.5.1/esptool.py \
+  python3 /tmp/arduino_clock_cli/packages/esp32/tools/esptool_py/4.5.1/esptool.py \
     --port $PORT \
     --baud 921600 \
     write_flash 0x230000 data.img
@@ -55,18 +55,18 @@ fi
 
 # Compile with clean build path
 echo "Compiling..."
-arduino-cli $CLI_CONFIG compile --fqbn esp32:esp32:esp32 \
+arduino-cli $CLI_CONFIG compile --fqbn esp32:esp32:esp32c3 \
   -j 0 \
   --build-path "./build_cache" \
   --libraries ~/Arduino/libraries \
   --build-property "build.extra_flags=-D CORE_DEBUG_LEVEL=0 -D BitOrder=uint8_t" \
   --build-property "build.partitions=partitions" \
-  ./Analog_Clock-esp32.ino
+  ./Analog_Clock-esp32c3.ino
 
 if [ "$NO_WRITE" = false ]; then
   echo "Uploading firmware..."
   arduino-cli $CLI_CONFIG upload \
-    --fqbn esp32:esp32:esp32 \
+    --fqbn esp32:esp32:esp32c3 \
     --port $PORT \
     --input-dir "./build_cache"
 else

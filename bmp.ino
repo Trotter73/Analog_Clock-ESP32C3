@@ -66,6 +66,34 @@ void randomClockFace() {
   }
 }
 
+// Advances to the next face in sequence (wrapping around) and redraws it,
+// including the hands, using the currently known time. Used by the BOOT
+// button handler for manual face switching - kept separate from
+// randomClockFace() so the normal automatic/random cycling is untouched.
+void nextClockFace() {
+  currentFaceNumber++;
+  if (currentFaceNumber > NUMBER_OF_FACE_FILES) currentFaceNumber = 1;
+
+  readHandPositions("hoursHand.pos", hoursHandPositions);
+  readHandPositions("minutesHand.pos", minutesHandPositions);
+
+  char buffer[50];
+  snprintf(buffer, sizeof(buffer), "/%d/clockface.bmp", currentFaceNumber);
+  if (initBMP(buffer)) {
+    drawBMP(tft);
+  }
+
+  // The face BMP only draws the background, so redraw the hands and second
+  // dot on top straight away rather than waiting for the next natural update.
+  if (hour >= 0 && minute >= 0) {
+    drawHourHand(hour * 5 % 60 + minute / 12, false);
+    drawMinuteHand(minute, false);
+  }
+  if (splittedSecond >= 0) {
+    draw_second(splittedSecond, 1);
+  }
+}
+
 boolean initBMP(char* fileName) {
   // Get the offset to the first bytes of the actual bitmap
   bitmapFile = LittleFS.open(fileName, "r");

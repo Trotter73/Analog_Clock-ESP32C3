@@ -115,10 +115,6 @@ boolean isNtpOlderThanOneHour() {
   return (!timeIsSet) || (time(nullptr) - lastNtpSet) > 3620;
 }
 
-int hour = -1;
-int minute = -1;
-int splittedSecond = -1;
-
 boolean ntpMissed = false;
 
 int previousClockSecond = 0;

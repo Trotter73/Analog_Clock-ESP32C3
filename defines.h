@@ -8,8 +8,8 @@
 #define BRIGHTNESS_ADDR (WIFI_PASSWORD_ADDR + sizeof(wifiPassword)) // int
 
 // The timezone to sync the date/time to, using NTP
-#define TZ_Europe_Amsterdam "CET-1CEST,M3.5.0,M10.5.0/3"
-#define MY_TZ TZ_Europe_Amsterdam
+#define TZ_Europe_London "GMT0BST,M3.5.0/1,M10.5.0"
+#define MY_TZ TZ_Europe_London
 
 // NTP server list to use for syncing time.
 #define NTP_SERVER "pool.ntp.org"
@@ -18,12 +18,14 @@
 
 #define TFT_VCC 3V3  // 3V3
 #define TFT_GND GND  // GND
-#define TFT_DIN MOSI // SPI MOSI, IO23
-#define TFT_CLK SCK  // SPI SCLK, IO18
-#define TFT_CS  SS   // SPI CS  , IO5
-#define TFT_DC  17   // IO      , IO17
-#define TFT_RST 16   // IO      , IO16
-#define TFT_BL  22   // IO      , IO22
+#define TFT_DIN 3    // SPI MOSI / SDA, GPIO3
+#define TFT_CLK 4    // SPI SCLK / SCL, GPIO4
+#define TFT_CS  1    // GPIO1
+#define TFT_DC  10   // GPIO10
+#define TFT_RST 0    // GPIO0
+#define TFT_BL  -1   // not wired to a GPIO; tie board's BL pin to 3V3
+
+#define BOOT_BUTTON_PIN 9  // BOOT button, active LOW, has an onboard pull-up
 
 #define SCREEN_DIAMETER 240
 
