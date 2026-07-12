@@ -1,6 +1,17 @@
-# Analog Clock
+# Analog Clock For ESP32C3 Mini
 
-<img src="https://raw.githubusercontent.com/MilovdZee/Analog_Clock-esp32/main/images/clocks.jpg" width=500/>
+A remix of two projects, the hardware is taken from the most excellent ESP32-Plane-Radar project, (https://github.com/MatixYo/ESP32-Plane-Radar) 
+I suggest you build and get this working before trying this….
+
+The code is forked from this beauty, https://github.com/MilovdZee/Analog_Clock-esp32
+
+Notable changes from the original are;
+
+1) Pin assignments updated to reflect the actual hardware being used.
+2) Limit the WiFi power to give a more stable AP and reception
+3) All in one script slightly modified to run on Linux Mint.
+4) Quickly tapping the BOOT button will cycle on to the next clock face.
+
 
 ## All in one
 
@@ -10,6 +21,7 @@ run `./compile.sh`. This will do the following:
 - create the SPIFFS partition data
 - compile the sketch
 - upload the data and sketch to the board
+- If the script complains that arduino-cli is missing, manually download it from here https://docs.arduino.cc/arduino-cli/installation/ and copy into a newly created bin folder in here.
 
 ## Update CA
 - echo | openssl s_client -servername raw.githubusercontent.com -connect raw.githubusercontent.com:443 -showcerts | grep -E "subject=|issuer="
@@ -28,9 +40,7 @@ run `./compile.sh`. This will do the following:
 
 ## 3D print files
 
-The 3D print STL files are in the 3D folder. The 'printhouder' is meant for a 'D1 mini esp32'.
-
-<img src="https://raw.githubusercontent.com/MilovdZee/Analog_Clock-esp32/main/images/d1-mini-esp32.jpg" width=200/>
+Use the files from here https://github.com/MatixYo/ESP32-Plane-Radar
 
 ## Setup LittleFS filesystem
 
@@ -47,4 +57,7 @@ The 3D print STL files are in the 3D folder. The 'printhouder' is meant for a 'D
   --port /dev/ttyACM0 \
   --baud 921600 \
   write_flash 0x230000 data.img
+
+## ToDo
+Remove the OTA update code.
 ```
