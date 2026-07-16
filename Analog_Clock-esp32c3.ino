@@ -142,6 +142,12 @@ void setup() {
   ssid[sizeof(ssid) - 1] = '\0';
   wifiPassword[sizeof(wifiPassword) - 1] = '\0';
 
+  // On a freshly erased chip (or after the fix above, any device that never
+  // had a password explicitly saved) the password bytes read back as 0xFF.
+  // Treat that the same as "no password" (open network) rather than as a
+  // garbage password that will fail to authenticate.
+  if ((uint8_t)wifiPassword[0] == 0xFF) wifiPassword[0] = '\0';
+
   // Treat a still-erased/garbage SSID as "not configured yet" rather than
   // wasting time on a doomed connection attempt.
   bool credentialsLookValid = (strlen(ssid) > 0) && ((uint8_t)ssid[0] != 0xFF);

@@ -23,12 +23,15 @@ void handleWifi() {
     }
     delay(500);
 
-    snprintf(ssid, sizeof(ssid), server.arg("ssid").c_str());
-    snprintf(wifiPassword, sizeof(wifiPassword), server.arg("password").c_str());
+    snprintf(ssid, sizeof(ssid), "%s", server.arg("ssid").c_str());
+    snprintf(wifiPassword, sizeof(wifiPassword), "%s", server.arg("password").c_str());
 
-    // Store values in EEProm
+    // Store values in EEProm. Always write the password (even if blank) -
+    // an open network genuinely has no password, and skipping the write
+    // here used to leave stale/garbage EEPROM bytes behind instead of an
+    // empty string, which broke connecting to open APs.
     EEPROM.put(SSID_ADDR, ssid);
-    if (String(wifiPassword).length() > 0) EEPROM.put(WIFI_PASSWORD_ADDR, wifiPassword);
+    EEPROM.put(WIFI_PASSWORD_ADDR, wifiPassword);
     EEPROM.commit();
 
     delay(500);
