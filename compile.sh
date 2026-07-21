@@ -36,6 +36,26 @@ if [[ ! -d "$LOCAL_DATA/packages/esp32/hardware/esp32/2.0.17" ]]; then
   arduino-cli $CLI_CONFIG core install esp32:esp32@2.0.17
 fi
 
+# Ensure required third-party libraries are installed locally
+# (kept under the same isolated /tmp tree as the core/tools, not $HOME,
+# since $HOME may not be stable/persistent across build environments)
+ARDUINO_LIBS="$LOCAL_DATA/libraries"
+mkdir -p "$ARDUINO_LIBS"
+
+declare -A REQUIRED_LIBS=(
+  ["Adafruit_GFX_Library"]="https://github.com/adafruit/Adafruit-GFX-Library.git"
+  ["Adafruit_BusIO"]="https://github.com/adafruit/Adafruit_BusIO.git"
+  ["Adafruit_GC9A01A"]="https://github.com/adafruit/Adafruit_GC9A01A.git"
+)
+
+for LIB_NAME in "${!REQUIRED_LIBS[@]}"; do
+  LIB_PATH="$ARDUINO_LIBS/$LIB_NAME"
+  if [[ ! -d "$LIB_PATH" ]]; then
+    echo "Installing library $LIB_NAME..."
+    git clone --depth 1 "${REQUIRED_LIBS[$LIB_NAME]}" "$LIB_PATH"
+  fi
+done
+
 echo "Creating data image for in SPIFFS partition..."
 /tmp/arduino_clock_cli/packages/esp32/tools/mklittlefs/3.0.0-gnu12-dc7f933/mklittlefs \
   --page 256 \
@@ -58,7 +78,7 @@ echo "Compiling..."
 arduino-cli $CLI_CONFIG compile --fqbn esp32:esp32:esp32c3 \
   -j 0 \
   --build-path "./build_cache" \
-  --libraries ~/Arduino/libraries \
+  --libraries "$ARDUINO_LIBS" \
   --build-property "build.extra_flags=-D CORE_DEBUG_LEVEL=0 -D BitOrder=uint8_t" \
   --build-property "build.partitions=partitions" \
   ./Analog_Clock-esp32c3.ino

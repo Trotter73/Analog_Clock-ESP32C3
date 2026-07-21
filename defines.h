@@ -1,4 +1,4 @@
-#define HOSTNAME "RondKlokje"
+#define HOSTNAME "RoundClock"
 
 #define SSID_ADDR 0 // String[60]
 #define WIFI_PASSWORD_ADDR (SSID_ADDR + sizeof(ssid)) // String[60]
