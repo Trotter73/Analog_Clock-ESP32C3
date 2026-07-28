@@ -23,20 +23,14 @@ run `./compile.sh`. This will do the following:
 - upload the data and sketch to the board
 - If the script complains that arduino-cli is missing, manually download it from here https://docs.arduino.cc/arduino-cli/installation/ and copy into a newly created bin folder in here.
 
-## Update CA
-- echo | openssl s_client -servername raw.githubusercontent.com -connect raw.githubusercontent.com:443 -showcerts | grep -E "subject=|issuer="
-- Take highest depth: depth=2 C=US, O=Internet Security Research Group, CN=ISRG Root X1
-  => ISRG Root X1
-  => cat /etc/ssl/certs/ISRG_Root_X1.pem
-- use this cert as the CA
 
 ## Setup
 
 - Write the LittleFS
 - Write the program using the Arduino IDE
-- Connect your computer or phone to th 'RondKlokje' wifi network
+- Connect your computer or phone to the 'RoundClock' wifi network
 - Open http://192.168.4.1
-- Goto 'wifi' and enter the credentials
+- Enter your WiFi credentials on the page and submit
 
 ## 3D print files
 

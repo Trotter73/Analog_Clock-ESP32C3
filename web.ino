@@ -1,17 +1,4 @@
 void handleRoot() {
-  String rootForm = String(CSS) + "<html>\
-  <body>\
-    <div class=\"container\">\
-      <h1>Settings</h1>\
-      <div><a href=\"/wifi\">wifi</a></div>\
-    </div>\
-  </body>\
-</html>";
-
-  server.send(200, "text/html", rootForm);
-}
-
-void handleWifi() {
   if (server.method() == HTTP_POST) {
     tft.fillScreen(GC9A01A_BLACK);
     for (uint16_t degrees = 0; degrees < 360; degrees += 10) {
@@ -42,11 +29,11 @@ void handleWifi() {
   EEPROM.get(SSID_ADDR, ssid);
   EEPROM.get(WIFI_PASSWORD_ADDR, wifiPassword);
 
-  String wifiForm = String(CSS) + "<html>\
+  String rootForm = String(CSS) + "<html>\
   <body>\
     <div class=\"container\">\
-    <h1>WiFi Settings</h1>\
-      <form method=\"POST\" action=\"/wifi\">\
+      <h1>Settings</h1>\
+      <form method=\"POST\" action=\"/\">\
         SSID:</br>\
         <input type=\"text\" name=\"ssid\" value=\""
                     + String(ssid) + "\"></br></br>\
@@ -59,5 +46,5 @@ void handleWifi() {
   </body>\
 </html>";
 
-  server.send(200, "text/html", wifiForm);
+  server.send(200, "text/html", rootForm);
 }

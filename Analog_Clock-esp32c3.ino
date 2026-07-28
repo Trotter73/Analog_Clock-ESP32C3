@@ -234,9 +234,11 @@ void setup() {
   sntp_set_time_sync_notification_cb(timeUpdated);
   sntp_set_sync_interval(600 * 1000);  // update every 10 minutes
 
-  // Setup the web server
-  server.on("/", handleRoot);
-  server.on("/wifi", handleWifi);
+  // Setup the web server. WiFi credentials now live directly on the root
+  // page (GET to view/edit, POST to save) - there's nothing else to
+  // configure, so a separate /wifi page was just an extra click.
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/", HTTP_POST, handleRoot);
   server.begin();
 
   // Initialize face
