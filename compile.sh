@@ -46,6 +46,7 @@ declare -A REQUIRED_LIBS=(
   ["Adafruit_GFX_Library"]="https://github.com/adafruit/Adafruit-GFX-Library.git"
   ["Adafruit_BusIO"]="https://github.com/adafruit/Adafruit_BusIO.git"
   ["Adafruit_GC9A01A"]="https://github.com/adafruit/Adafruit_GC9A01A.git"
+  ["ArduinoJson"]="https://github.com/bblanchon/ArduinoJson.git"
 )
 
 for LIB_NAME in "${!REQUIRED_LIBS[@]}"; do

@@ -22,6 +22,9 @@ time_t previousEffectTime = time(nullptr);
 
 char ssid[60];
 char wifiPassword[60];
+char owmApiKey[OWM_API_KEY_LEN];
+char owmLat[OWM_COORD_LEN];
+char owmLon[OWM_COORD_LEN];
 
 ClockTFT tft(TFT_CS, TFT_DC, TFT_RST);
 
@@ -36,6 +39,14 @@ HandPosition minutesHandPositions[15];
 int hour = -1;
 int minute = -1;
 int splittedSecond = -1;
+
+// millis() timestamp of the last automatic face rotation - checked against
+// ROTATION_INTERVAL_MS in updateClock() (clock.ino), updated in
+// advanceFaceRotation() (bmp.ino). Declared here rather than in bmp.ino so
+// that setup() below - concatenated before every other tab - can also set
+// it (an out-of-order variable reference isn't auto-forward-declared the
+// way function calls are).
+unsigned long lastRotationMillis = 0;
 
 // Record the NPT set time
 void timeUpdated(struct timeval *tv) {
@@ -160,6 +171,18 @@ void setup() {
     Serial.printf("\nConnecting to WIFI '%s'... ", ssid);
   }
 
+  // Setup the weather config (same freshly-erased-flash handling as above -
+  // 0xFF bytes on a chip that's never had these fields written).
+  EEPROM.get(OWM_API_KEY_ADDR, owmApiKey);
+  EEPROM.get(OWM_LAT_ADDR, owmLat);
+  EEPROM.get(OWM_LON_ADDR, owmLon);
+  owmApiKey[sizeof(owmApiKey) - 1] = '\0';
+  owmLat[sizeof(owmLat) - 1] = '\0';
+  owmLon[sizeof(owmLon) - 1] = '\0';
+  if ((uint8_t)owmApiKey[0] == 0xFF) owmApiKey[0] = '\0';
+  if ((uint8_t)owmLat[0] == 0xFF) owmLat[0] = '\0';
+  if ((uint8_t)owmLon[0] == 0xFF) owmLon[0] = '\0';
+
   WiFi.mode(WIFI_STA);
   // ESP32-C3 "Super Mini" clone boards commonly have an undersized onboard
   // 3.3V regulator that can't reliably supply the radio at default max TX
@@ -242,7 +265,12 @@ void setup() {
   server.begin();
 
   // Initialize face
-  randomClockFace();
+  showClockFaceSlot();
+  // Start the rotation timer from here, not from millis()==0 at power-on -
+  // otherwise a short ROTATION_INTERVAL_SECONDS could make the very first
+  // automatic rotation fire immediately, before boot (WiFi connect, NTP
+  // sync) has even finished.
+  lastRotationMillis = millis();
 
   Serial.println();
   Serial.println("Running...");

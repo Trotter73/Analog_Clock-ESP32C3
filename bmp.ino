@@ -53,24 +53,75 @@ void drawBMPFromFile(int xOffset, int yOffset, int rotationX, int rotationY, int
 File bitmapFile;
 long bitmapOffset;
 
-void randomClockFace() {
-  currentFaceNumber = random(1, NUMBER_OF_FACE_FILES + 1);
+// The automatic display rotation cycles through these three slots in order
+// (clock face -> weather -> date -> repeat) - see advanceFaceRotation() and
+// setFaceForCurrentSlot() below. The BOOT button (nextClockFace()) is
+// deliberately separate from this and only ever touches the picture faces.
+enum FaceSlot : uint8_t { SLOT_CLOCK = 0, SLOT_WEATHER = 1, SLOT_DATE = 2 };
+uint8_t currentSlot = SLOT_CLOCK;
 
-  readHandPositions("hoursHand.pos", hoursHandPositions);
-  readHandPositions("minutesHand.pos", minutesHandPositions);
- 
-  char buffer[50];
-  snprintf(buffer, sizeof(buffer), "/%d/clockface.bmp", currentFaceNumber);
-  if (initBMP(buffer)) {
-    drawBMP(tft);
+// Draws whichever face is appropriate for currentSlot, updating
+// currentFaceNumber to match. The clock slot picks a random picture face
+// each time round, same as the old random selection did.
+void setFaceForCurrentSlot() {
+  Serial.printf("setFaceForCurrentSlot: slot=%d\n", currentSlot);
+
+  switch (currentSlot) {
+    case SLOT_WEATHER:
+      currentFaceNumber = WEATHER_FACE_NUMBER;
+      drawWeatherFace();
+      break;
+
+    case SLOT_DATE:
+      currentFaceNumber = DATE_FACE_NUMBER;
+      drawDateFace();
+      break;
+
+    case SLOT_CLOCK:
+    default:
+      currentFaceNumber = random(1, NUMBER_OF_FACE_FILES + 1);
+
+      readHandPositions("hoursHand.pos", hoursHandPositions);
+      readHandPositions("minutesHand.pos", minutesHandPositions);
+
+      {
+        char buffer[50];
+        snprintf(buffer, sizeof(buffer), "/%d/clockface.bmp", currentFaceNumber);
+        if (initBMP(buffer)) {
+          drawBMP(tft);
+        }
+      }
+      break;
   }
 }
 
-// Advances to the next face in sequence (wrapping around) and redraws it,
+// Moves on to the next slot in the clock -> weather -> date rotation. Called
+// every ROTATION_INTERVAL_SECONDS from updateClock().
+void advanceFaceRotation() {
+  Serial.printf("advanceFaceRotation: leaving slot=%d at millis=%lu\n", currentSlot, millis());
+  currentSlot = (currentSlot + 1) % 3;
+  setFaceForCurrentSlot();
+  Serial.printf("advanceFaceRotation: done, now slot=%d at millis=%lu\n", currentSlot, millis());
+}
+
+// Jumps straight back to the clock-face slot. Used at boot, and when NTP
+// time is recovered after being lost (where hour/minute get reset to -1
+// anyway, so there's no sensible "next" slot to advance to).
+void showClockFaceSlot() {
+  currentSlot = SLOT_CLOCK;
+  setFaceForCurrentSlot();
+}
+
+// Advances to the next picture clock face (wrapping around) and redraws it,
 // including the hands, using the currently known time. Used by the BOOT
-// button handler for manual face switching - kept separate from
-// randomClockFace() so the normal automatic/random cycling is untouched.
+// button handler - deliberately only ever cycles the picture faces
+// (1..NUMBER_OF_FACE_FILES), never landing on weather/date, and always
+// leaves the rotation on the clock slot so the next automatic rotation
+// continues clock -> weather -> date in order rather than picking up
+// mid-sequence from wherever the button left off.
 void nextClockFace() {
+  currentSlot = SLOT_CLOCK;
+
   currentFaceNumber++;
   if (currentFaceNumber > NUMBER_OF_FACE_FILES) currentFaceNumber = 1;
 

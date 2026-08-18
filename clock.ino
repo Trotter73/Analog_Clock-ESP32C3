@@ -137,9 +137,13 @@ void updateClock() {
 
   if (ntpMissed == true) {
     ntpMissed = false;
-    randomClockFace();
+    showClockFaceSlot();
     hour = -1;
     minute = -1;
+    // Restart the rotation timer too - otherwise a stale lastRotationMillis
+    // from before the NTP outage could make it look "due" again immediately
+    // on recovery.
+    lastRotationMillis = millis();
   }
 
   timeinfo = localtime (&currentTime); // setup timeinfo -> tm_hour, timeinfo -> tm_min, timeinfo -> tm_sec
@@ -152,18 +156,42 @@ void updateClock() {
   millisOfSecond = millisOfSecond + millisOffset;
   if (millisOfSecond < 0) millisOfSecond += 1000;
 
-  int newSplittedSecond = timeinfo->tm_sec * SECOND_SPLIT + millisOfSecond * SECOND_SPLIT / 1000;
-  if (newSplittedSecond > splittedSecond || splittedSecond - newSplittedSecond > 30) {
-    // Second check to prevent some weird jumps
-    draw_second(splittedSecond, 0);
-    splittedSecond = newSplittedSecond;
-    draw_second(splittedSecond, 1);
+  if (currentFaceNumber <= NUMBER_OF_FACE_FILES) {
+    int newSplittedSecond = timeinfo->tm_sec * SECOND_SPLIT + millisOfSecond * SECOND_SPLIT / 1000;
+    if (newSplittedSecond > splittedSecond || splittedSecond - newSplittedSecond > 30) {
+      // Second check to prevent some weird jumps
+      draw_second(splittedSecond, 0);
+      splittedSecond = newSplittedSecond;
+      draw_second(splittedSecond, 1);
+    }
+  }
+
+  // Automatic face rotation - driven off elapsed millis() rather than
+  // calendar minutes, so it's independent of the once-a-minute hand update
+  // below and can run on any interval, including sub-minute ones.
+  if (millis() - lastRotationMillis >= ROTATION_INTERVAL_MS) {
+    lastRotationMillis = millis();
+    advanceFaceRotation(); // clock -> weather -> date -> repeat; may switch currentFaceNumber to/from a software face
+
+    // setFaceForCurrentSlot() only draws the BMP background for a picture
+    // face - it doesn't know about the current time - so draw the hands on
+    // top immediately here, the same way nextClockFace() does for a manual
+    // button press. Otherwise a freshly-rotated-to clock face would sit
+    // handless until the next calendar-minute tick below.
+    if (currentFaceNumber <= NUMBER_OF_FACE_FILES && hour >= 0 && minute >= 0) {
+      drawHourHand(timeinfo->tm_hour * 5 % 60 + timeinfo->tm_min / 12, false);
+      drawMinuteHand(timeinfo->tm_min, false);
+      if (splittedSecond >= 0) {
+        draw_second(splittedSecond, 1);
+      }
+    }
   }
 
   if (timeinfo->tm_min != minute) {
-    if (minute % 5 == 0) {
-      randomClockFace();
-    } else {
+    // The software faces (date/weather) have no hands to erase/redraw -
+    // they're static GFX text pages rather than a BMP background with hand
+    // overlays.
+    if (currentFaceNumber <= NUMBER_OF_FACE_FILES) {
       drawHourHand(hour * 5 % 60 + minute / 12, true);
       drawMinuteHand(minute, true);
     }
@@ -171,7 +199,17 @@ void updateClock() {
     hour = timeinfo->tm_hour;
     minute = timeinfo->tm_min;
 
-    drawHourHand(hour * 5 % 60 + minute / 12, false);
-    drawMinuteHand(minute, false);
+    if (currentFaceNumber == DATE_FACE_NUMBER) {
+      // Keep the digital time readout on the date face fresh even when it
+      // wasn't just (re)drawn from scratch above.
+      updateDateFaceTime();
+    } else if (currentFaceNumber == WEATHER_FACE_NUMBER) {
+      // Only actually re-fetches/redraws once WEATHER_REFRESH_INTERVAL_MS
+      // has passed - see updateWeatherFace() in weatherFace.ino.
+      updateWeatherFace();
+    } else {
+      drawHourHand(hour * 5 % 60 + minute / 12, false);
+      drawMinuteHand(minute, false);
+    }
   }
 }
